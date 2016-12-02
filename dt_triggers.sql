@@ -87,4 +87,25 @@ begin
 	end if;
 end;;
 
+drop trigger if exists `onProjectStatusUpdated`;;
+create trigger `onProjectStatusUpdated` before update on `project`
+for each row
+begin
+	if (old.ProjectStatusCode !=3 and new.ProjectStatusCode = 3) then
+    begin
+		insert into test values (null, concat(old.ProjectId, " prjId is old"));
+		SET SQL_SAFE_UPDATES = 0;
+		delete from account_project where account_project.ProjectId = old.ProjectId;
+		SET SQL_SAFE_UPDATES = 1;
+	end;
+    end if;
+end;;
+
+drop trigger if exists `onOrderCreated`;;
+create trigger `onOrderCreated` after insert on `order`
+for each row
+begin
+	insert into project values (null, "", new.Description, 1);
+end;;
+
 delimiter ;
