@@ -77,22 +77,23 @@ begin
 end;;
 
 drop trigger if exists `onAccountDeletedFromProject`;;
-create trigger `onAccountDeletedFromProject` after delete on `account_project`
+create trigger `onAccountDeletedFromProject` before delete on `account_project`
 for each row
 begin
 	set @developersLeft = (select count(*) from account_project where account_project.ProjectId=old.ProjectId);
-    if (@developersLeft=0) then
-		update project set ProjectStatusCode = 4 where ProjectId=old.ProjectId;
+    set @projectToLeaveId = old.ProjectId;
+    set @projectToLeaveStatusCode = (select ProjectStatusCode from project where ProjectId = @projectToLeaveId);
+    if (@developersLeft=1 and @projectToLeaveStatusCode !=3) then
+		update project set ProjectStatusCode = 4 where ProjectId = @projectToLeaveId;
 	end if;
 end;;
-# коллизия
+
 drop trigger if exists `onProjectStatusUpdated`;;
 create trigger `onProjectStatusUpdated` after update on `project`
 for each row
 begin
 	if (old.ProjectStatusCode !=3 and new.ProjectStatusCode = 3) then
     begin
-		insert into test values (null, concat(old.ProjectId, " prjId is old"));
 		SET SQL_SAFE_UPDATES = 0;
 		delete from account_project where account_project.ProjectId = old.ProjectId;
 		SET SQL_SAFE_UPDATES = 1;
