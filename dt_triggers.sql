@@ -42,7 +42,7 @@ begin
 	end if;
 end;;
 
-drop trigger if exists `onPartnershipDel`;; #не пашет
+drop trigger if exists `onPartnershipDel`;;
 create trigger `onPartnershipDel` before delete on `partnershipcontract`
 for each row
 begin
@@ -85,7 +85,7 @@ begin
 		update project set ProjectStatusCode = 4 where ProjectId=old.ProjectId;
 	end if;
 end;;
-
+# коллизия
 drop trigger if exists `onProjectStatusUpdated`;;
 create trigger `onProjectStatusUpdated` after update on `project`
 for each row
