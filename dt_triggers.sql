@@ -73,7 +73,7 @@ begin
 	set @newEventId = new.EventId;
     insert into test values (null, @newEventId);
     insert into delivery (select AccountId, EventId from account join eventinfo
-	where account.IsDeleted = 0 and eventinfo.EventId = @newEventId);
+	where account.IsHidden = 0 and eventinfo.EventId = @newEventId);
 end;;
 
 drop trigger if exists `onAccountDeletedFromProject`;;
