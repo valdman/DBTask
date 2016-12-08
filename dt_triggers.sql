@@ -8,13 +8,18 @@ set new.Password = md5(new.Password);;
 drop trigger if exists `onAccountUpdated`;;
 create trigger `onAccountUpdated` before update on `account`
 for each row
-set new.Password = md5(new.Password);;
+begin
+	if(new.Password != old.Password) then
+		set new.Password = md5(new.Password);
+	end if;
+end;;
 
 drop trigger if exists `onTryingToDeleteAccount`;; #Этот триггер не сработает из-за ограничений MySql на функционал триггеров (не может править ту же таблицу)
-create trigger `onTryingToDeleteAccount` before delete on `account`
+create trigger `onTryingToDeleteAccount` after delete on `account`
 for each row
 begin
-	update account set IsDeleted=1 where account.AccountId=old.AccountId; #Нельзя в MySql!
+	#update account set IsDeleted=1 where account.AccountId=old.AccountId; #Нельзя в MySql!
+    insert into account_old values (null, old.FirstName, old.LastName, old.Email, old.Password, 1);
 end;;
 
 drop trigger if exists `onProjectAdded`;;
@@ -43,20 +48,14 @@ for each row
 begin
 	set @pcontractID = old.PartnershipContractId;
     set @pcontractSum = old.Ammount;
-    set @relatedContractIds = (select distinct contract.ContractId
-								from contract, partnershipcontract, contract_partnershipcontract
-								where contract.ContractId = contract_partnershipcontract.ContractId and
-								contract_partnershipcontract.Partnershipcontract=@pcontractID);
-                                
-	update 
-		contract 
-		inner join contract_partnershipcontract using(ContractId)
-		join partnershipcontract on(contract_partnershipcontract.Partnershipcontract = partnershipcontract.PartnershipContractId)
-    set 
-		contract.ContractSum = (ContractSum - @pcontractSum)
-	where
-		PartnershipcontractId  = @pcontractID;
-	#delete from contract_partnershipcontract where contract_partnershipcontract.Partnershipcontract=@pcontractID;
+	
+    SET SQL_SAFE_UPDATES = 0;
+	update contract join contract_partnershipcontract on(contract.ContractId=contract_partnershipcontract.ContractId)
+	set contract.ContractSum = contract.ContractSum - @pcontractSum
+    where contract_partnershipcontract.Partnershipcontract = @pcontractID;
+    
+	delete from contract_partnershipcontract where contract_partnershipcontract.Partnershipcontract=@pcontractID;
+    SET SQL_SAFE_UPDATES = 1;
 end;;
 
 drop trigger if exists `onContractPartnershipIns`;;
@@ -88,7 +87,7 @@ begin
 end;;
 
 drop trigger if exists `onProjectStatusUpdated`;;
-create trigger `onProjectStatusUpdated` before update on `project`
+create trigger `onProjectStatusUpdated` after update on `project`
 for each row
 begin
 	if (old.ProjectStatusCode !=3 and new.ProjectStatusCode = 3) then
