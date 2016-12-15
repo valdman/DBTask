@@ -20,26 +20,21 @@ begin
 	end if;
 end;;
 
-drop function if exists `DebtSumByContract`;;
-create function `DebtSumByContract` (contractIdToFind int(5))
-	returns int
-begin
-	set @sumOfPaymentsByContractsToFind = (select sum(Ammount) from payment where payment.ContractId=contractIdToFind);
-    set @contractSumToFind = (select contract.ContractSum from contract where contract.ContractId=contractIdToFind);
-    set @debtToRes =  @contractSumToFind - @sumOfPaymentsByContractsToFind;
-    if (@debtToRes > 0) then
-		return @debtToRes;
-	else
-		return 0;
-	end if;
-    
-end;;
-
 drop function if exists `GetCountOfUnreadEvents`;;
 create function `GetCountOfUnreadEvents` (userId int(5))
 	returns int
 begin
 	return (select count(*) from delivery where AccountId = userId and WasRead = 0);
 end;;
+
+drop function if exists `FindOrders`;;
+create function `FindOrders` (strToFind varchar(15))
+	returns int
+begin
+	#select OrderId from `developersteam_valdman`.`order` where Description like(concat("%", strToFind, "%"));
+    return 0;
+end;;
+
+drop function if exists `FindOrders`;;
 
 delimiter ;

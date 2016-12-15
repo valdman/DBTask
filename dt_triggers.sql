@@ -71,8 +71,7 @@ create trigger `onEventAdded` after insert on `eventinfo`
 for each row
 begin
 	set @newEventId = new.EventId;
-    insert into test values (null, @newEventId);
-    insert into delivery (select AccountId, EventId from account join eventinfo
+    insert into delivery (select AccountId, EventId, 0 from account join eventinfo
 	where account.IsHidden = 0 and eventinfo.EventId = @newEventId);
 end;;
 

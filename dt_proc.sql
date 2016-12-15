@@ -40,4 +40,17 @@ begin
     set SQL_SAFE_UPDATES = 1;
 end;;
 
+drop procedure if exists DebtSumByContract;;
+create procedure DebtSumByContract(contractIdToFind int(5))
+begin
+	set @sumOfPaymentsByContractsToFind = (select sum(Ammount) from payment where payment.ContractId=contractIdToFind);
+    set @contractSumToFind = (select contract.ContractSum from contract where contract.ContractId=contractIdToFind);
+    set @debtToRes =  @contractSumToFind - @sumOfPaymentsByContractsToFind;
+    if (@debtToRes > 0) then
+		select @debtToRes;
+	else
+		select 0;
+	end if;
+end;;
+
 delimiter ;
