@@ -26,7 +26,7 @@ drop trigger if exists `onProjectAdded`;;
 create trigger `onProjectAdded` after insert on `project`
 for each row
 begin
-	insert into eventinfo values (null, now(), concat(new.Name, " project added!"), 6);
+	insert into eventinfo values (null, now(), concat(new.ProjectId, " project added!"), 6);
 end;;
 
 drop trigger if exists `onPaymentAdded`;;
